@@ -27,7 +27,6 @@ const READDIR_OPTIONS = {
 
 // function haveRemovedFiles() {}
 
-
 // function satisfyMergeConditions(
 //   styleFiles,
 //   outputPath,
@@ -50,7 +49,7 @@ function mergeStyleFiles(styleFiles, outputPath, destinationFile) {
         path.join(outputPath, destinationFile),
         outputStreamOptions,
       );
-      output.write(`/* Initial file: ${file.name}*/`)
+      output.write(`/* Initial file: ${file.name}*/`);
       input.pipe(output);
     });
   });
@@ -75,7 +74,7 @@ function processStyles(
     //     readdirOptions,
     //   )
     // ) {
-      mergeStyleFiles(styleFiles, outputPath, destinationFile);
+    mergeStyleFiles(styleFiles, outputPath, destinationFile);
     // }
   });
 }
