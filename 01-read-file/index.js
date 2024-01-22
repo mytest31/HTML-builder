@@ -9,3 +9,4 @@ input.on('data', (data) => {
   text += data;
 });
 input.on('end', () => console.log(text));
+input.on('error', (error) => console.error(error.message));
