@@ -17,7 +17,9 @@ stdout.write(
 );
 
 stdin.on('data', (data) => {
-  data.toString().trim() === 'exit' ? process.exit() : outputStream.write(data);
+  data.toString().trim().toLowerCase() === 'exit'
+    ? process.exit()
+    : outputStream.write(data);
 });
 stdin.on('error', (err) => console.error(err.message));
 
