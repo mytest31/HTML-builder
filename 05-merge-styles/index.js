@@ -1,4 +1,5 @@
 const fs = require('fs');
+const fsPromises = require('fs').promises;
 const path = require('path');
 
 const PROJECT_FOLDER = 'project-dist';
@@ -11,34 +12,51 @@ const READDIR_OPTIONS = {
   withFileTypes: true,
 };
 
-// function haveNewContent(styleFiles, outputPath, destinationFile) {
-//   fs.stat(path.join(outputPath, destinationFile), (error, destinationStat) => {
-//     if (error) return console.error(error.message);
-//     const changeTimeOfDestinationFile = destinationStat.ctimeMs;
-//     styleFiles.forEach((file) => {
-//       fs.stat(path.join(file.path, file.name), (error, sourceStat) => {
-//         if (error) return console.error(error.message);
-//         if (sourceStat.ctimeMs > changeTimeOfDestinationFile) return true;
-//       });
-//     });
-//   });
-//   return false;
-// }
+async function checkModifiedFiles(
+  styleFiles,
+  outputPath,
+  destinationFile,
+  changeTimeOfDestinationFile,
+) {
+  let maxModificationDate = Number.NEGATIVE_INFINITY;
+  for (const file of styleFiles) {
+    try {
+      const fileStat = await fsPromises.stat(path.join(file.path, file.name));
+      if (fileStat.ctimeMs > maxModificationDate) {
+        maxModificationDate = fileStat.ctimeMs;
+      }
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
+  if (changeTimeOfDestinationFile < maxModificationDate) {
+    mergeStyleFiles(styleFiles, outputPath, destinationFile);
+  }
+}
 
-// function haveRemovedFiles() {}
-
-// function satisfyMergeConditions(
-//   styleFiles,
-//   outputPath,
-//   destinationFile,
-//   readdirOptions,
-// ) {
-//   // check if destination file exists
-//   fs.access(path.join(outputPath, destinationFile), (error) => {
-//     if (error) return false;
-//     return haveNewContent(styleFiles, outputPath, destinationFile);
-//   });
-// }
+function contentHandler(styleFiles, sourcePath, outputPath, destinationFile) {
+  // check if the folder was modified
+  fs.stat(path.join(outputPath, destinationFile), (error, destinationStat) => {
+    if (error) return console.error(error.message);
+    const changeTimeOfDestinationFile = destinationStat.ctimeMs;
+    fs.stat(sourcePath, (error, sourcePathStat) => {
+      if (error) console.error(error.message);
+      const changeTimeOfSourcePath = sourcePathStat.ctimeMs;
+      if (changeTimeOfDestinationFile < changeTimeOfSourcePath) {
+        // check if files were added or removed
+        mergeStyleFiles(styleFiles, outputPath, destinationFile);
+      } else {
+        // check if files were modified
+        checkModifiedFiles(
+          styleFiles,
+          outputPath,
+          destinationFile,
+          changeTimeOfDestinationFile,
+        );
+      }
+    });
+  });
+}
 
 function mergeStyleFiles(styleFiles, outputPath, destinationFile) {
   fs.unlink(path.join(outputPath, destinationFile), () => {
@@ -49,7 +67,7 @@ function mergeStyleFiles(styleFiles, outputPath, destinationFile) {
         path.join(outputPath, destinationFile),
         outputStreamOptions,
       );
-      output.write(`/* Initial file: ${file.name}*/`);
+      output.write(`/* ${file.name} */\n`);
       input.pipe(output);
     });
   });
@@ -66,16 +84,14 @@ function processStyles(
     const styleFiles = dirContent.filter(
       (file) => file.isFile() && path.extname(file.name) === '.css',
     );
-    // if (
-    //   satisfyMergeConditions(
-    //     styleFiles,
-    //     outputPath,
-    //     destinationFile,
-    //     readdirOptions,
-    //   )
-    // ) {
-    mergeStyleFiles(styleFiles, outputPath, destinationFile);
-    // }
+    // check if destination file exists
+    fs.access(path.join(outputPath, destinationFile), (error) => {
+      if (error) {
+        mergeStyleFiles(styleFiles, outputPath, destinationFile);
+      } else {
+        contentHandler(styleFiles, sourcePath, outputPath, destinationFile);
+      }
+    });
   });
 }
 
