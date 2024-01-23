@@ -101,3 +101,5 @@ processStyles(
   DESTINATION_FILE,
   READDIR_OPTIONS,
 );
+
+module.exports = { processStyles };

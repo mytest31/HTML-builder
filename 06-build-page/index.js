@@ -2,12 +2,15 @@ const fs = require('fs');
 const fsPromises = require('fs').promises;
 const path = require('path');
 
+const processStyle = require('../05-merge-styles/index');
+
 const DESTINATION_FOLDER_NAME = 'project-dist';
 const STYLES_FOLDER_NAME = 'styles';
 const ASSETS_FOLDER_NAME = 'assets';
 const COMPONENTS_FOLDER_NAME = 'components';
 const TEMPLATE_HTML_FILE = 'template.html';
 const DESTINATION_HTML_FILE = 'index.html';
+const DESTINATION_CSS_FILE = 'style.css';
 
 function saveHTML(htmlTemplate, fileContentList) {
   const absoluteDestinationPath = path.join(
@@ -78,6 +81,28 @@ function createHTML() {
   input.on('error', (error) => console.error(error.message));
 }
 
+function mergeStyles() {
+  const absoluteSourceFolder = path.join(__dirname, STYLES_FOLDER_NAME);
+  const absoluteDestinationFolder = path.join(
+    __dirname,
+    DESTINATION_FOLDER_NAME,
+  );
+  const destinationFile = DESTINATION_CSS_FILE;
+  const readdirOptions = {
+    withFileTypes: true,
+  };
+  processStyle.processStyles(
+    absoluteSourceFolder,
+    absoluteDestinationFolder,
+    destinationFile,
+    readdirOptions,
+  );
+}
+
+function copyAssets() {
+  //
+}
+
 function createDestinationFolder() {
   const destinationAbsolutePath = path.join(__dirname, DESTINATION_FOLDER_NAME);
   const mkdirOptions = {
@@ -86,6 +111,8 @@ function createDestinationFolder() {
   fs.mkdir(destinationAbsolutePath, mkdirOptions, (error) => {
     if (error) return console.error(error.message);
     createHTML();
+    mergeStyles();
+    copyAssets();
   });
 }
 
