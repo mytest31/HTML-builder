@@ -95,11 +95,13 @@ function processStyles(
   });
 }
 
-processStyles(
-  ABSOLUTE_STYLES_FOLDER,
-  ABSOLUTE_PROJECT_FOLDER,
-  DESTINATION_FILE,
-  READDIR_OPTIONS,
-);
-
-module.exports = { processStyles };
+if (require.main === module) {
+  processStyles(
+    ABSOLUTE_STYLES_FOLDER,
+    ABSOLUTE_PROJECT_FOLDER,
+    DESTINATION_FILE,
+    READDIR_OPTIONS,
+  );
+} else {
+  module.exports = { processStyles };
+}

@@ -151,23 +151,40 @@ function processAllFiles(
   );
 }
 
-function copyDirectoryFiles(
+function copyDirectory(
   absoluteSourcePath,
   absoluteDestinationPath,
   readdir_options,
 ) {
-  fs.mkdir(ABSOLUTE_DESTINATION_PATH, MKDIR_OPTIONS, (error) => {
-    if (error) return console.error(error.message);
+  fs.mkdir(absoluteDestinationPath, MKDIR_OPTIONS, (error) => {
+    if (error) console.error(error.message);
     processAllFiles(
       absoluteSourcePath,
       absoluteDestinationPath,
       readdir_options,
     );
+    fs.readdir(absoluteSourcePath, readdir_options, (error, dirContent) => {
+      if (error) console.error(error.message);
+      dirContent.forEach((content) => {
+        if (content.isDirectory()) {
+          const sourcePath = path.join(content.path, content.name);
+          const destinationPath = path.join(
+            absoluteDestinationPath,
+            content.name,
+          );
+          copyDirectory(sourcePath, destinationPath, readdir_options);
+        }
+      });
+    });
   });
 }
 
-copyDirectoryFiles(
-  ABSOLUTE_SOURCE_PATH,
-  ABSOLUTE_DESTINATION_PATH,
-  READDIR_OPTIONS,
-);
+if (require.main === module) {
+  copyDirectory(
+    ABSOLUTE_SOURCE_PATH,
+    ABSOLUTE_DESTINATION_PATH,
+    READDIR_OPTIONS,
+  );
+} else {
+  module.exports = { copyDirectory };
+}

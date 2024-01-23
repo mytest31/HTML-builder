@@ -1,7 +1,7 @@
 const fs = require('fs');
-const fsPromises = require('fs').promises;
 const path = require('path');
 
+const copyDirectory = require('../04-copy-directory/index');
 const processStyle = require('../05-merge-styles/index');
 
 const DESTINATION_FOLDER_NAME = 'project-dist';
@@ -100,7 +100,21 @@ function mergeStyles() {
 }
 
 function copyAssets() {
-  //
+  const absoluteSourcePath = path.join(__dirname, ASSETS_FOLDER_NAME);
+  const absoluteDestinationPath = path.join(
+    __dirname,
+    DESTINATION_FOLDER_NAME,
+    ASSETS_FOLDER_NAME,
+  );
+  const readdir_options = {
+    withFileTypes: true,
+  };
+
+  copyDirectory.copyDirectory(
+    absoluteSourcePath,
+    absoluteDestinationPath,
+    readdir_options,
+  );
 }
 
 function createDestinationFolder() {
