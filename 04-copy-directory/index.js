@@ -49,8 +49,8 @@ function updateOneFile(
 ) {
   fs.stat(path.join(file.path, file.name), (error, statsSource) => {
     if (error) return console.error(error.message);
-    const sourceModificationTime = statsSource.atimeMs;
-    const destinationModificationTime = statsDestination.atimeMs;
+    const sourceModificationTime = statsSource.mtimeMs;
+    const destinationModificationTime = statsDestination.mtimeMs;
     if (sourceModificationTime > destinationModificationTime) {
       fs.copyFile(
         path.join(absoluteSourcePath, file.name),
